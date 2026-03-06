@@ -59,18 +59,18 @@ function assertCanonicalShape(room: CanonicalRoomType) {
 
 describe('Mews adapter', () => {
   it('parses a full envelope response', () => {
-    const rooms = parseFromPMS('mews', mewsFullResponse);
+    const rooms = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(rooms).toHaveLength(2);
     rooms.forEach(assertCanonicalShape);
   });
 
   it('assigns correct pmsSource', () => {
-    const [room] = parseFromPMS('mews', mewsFullResponse);
+    const [room] = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(room.pmsSource).toBe('mews');
   });
 
   it('maps fields correctly for the first entry', () => {
-    const [room] = parseFromPMS('mews', mewsFullResponse);
+    const [room] = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(room.externalId).toBe('5ee074b1-49a5-4ab3-9c72-3dfa17b15b5b');
     expect(room.name).toBe('Deluxe Double Room');
     expect(room.shortCode).toBe('DDR');
@@ -83,12 +83,12 @@ describe('Mews adapter', () => {
   });
 
   it('accepts a flat array (no envelope)', () => {
-    const rooms = parseFromPMS('mews', mewsArrayResponse);
+    const rooms = parseFromPMS('mews', 'roomTypes', mewsArrayResponse);
     expect(rooms).toHaveLength(2);
   });
 
   it('handles a minimal entry with missing optional fields (warns but does not throw)', () => {
-    const rooms = parseFromPMS('mews', [mewsMinimalEntry]);
+    const rooms = parseFromPMS('mews', 'roomTypes', [mewsMinimalEntry]);
     expect(rooms).toHaveLength(1);
     expect(rooms[0].name).toBe('');
     expect(rooms[0].maxOccupancy).toBe(0);
@@ -97,22 +97,22 @@ describe('Mews adapter', () => {
   });
 
   it('skips entries missing the required Id field', () => {
-    const rooms = parseFromPMS('mews', [mewsInvalidEntry]);
+    const rooms = parseFromPMS('mews', 'roomTypes', [mewsInvalidEntry]);
     expect(rooms).toHaveLength(0);
   });
 
   it('returns empty array for completely invalid input', () => {
-    const rooms = parseFromPMS('mews', null);
+    const rooms = parseFromPMS('mews', 'roomTypes', null);
     expect(rooms).toEqual([]);
   });
 
   it('confidence is high when all fields are present', () => {
-    const [room] = parseFromPMS('mews', mewsFullResponse);
+    const [room] = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(room.confidence).toBeGreaterThanOrEqual(0.6);
   });
 
   it('id has mews_ prefix', () => {
-    const [room] = parseFromPMS('mews', mewsFullResponse);
+    const [room] = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(room.id).toMatch(/^mews_/);
   });
 });
@@ -123,18 +123,18 @@ describe('Mews adapter', () => {
 
 describe('Cloudbeds adapter', () => {
   it('parses a full envelope response', () => {
-    const rooms = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     expect(rooms).toHaveLength(2);
     rooms.forEach(assertCanonicalShape);
   });
 
   it('assigns correct pmsSource', () => {
-    const [room] = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const [room] = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     expect(room.pmsSource).toBe('cloudbeds');
   });
 
   it('maps fields correctly for the first entry', () => {
-    const [room] = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const [room] = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     expect(room.externalId).toBe('12345');
     expect(room.name).toBe('Deluxe Double');
     expect(room.shortCode).toBe('DD');
@@ -146,30 +146,30 @@ describe('Cloudbeds adapter', () => {
   });
 
   it('normalises roomsCount numeric strings', () => {
-    const [room] = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const [room] = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     expect(typeof room.roomCount).toBe('number');
   });
 
   it('parses amenities on second entry', () => {
-    const rooms = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     expect(rooms[1].amenities).toEqual(['WiFi', 'Breakfast', 'Pool access']);
     expect(rooms[1].bedType).toBe('king');
   });
 
   it('accepts flat array', () => {
-    const rooms = parseFromPMS('cloudbeds', cloudbedsArrayResponse);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsArrayResponse);
     expect(rooms).toHaveLength(2);
   });
 
   it('handles minimal entry', () => {
-    const rooms = parseFromPMS('cloudbeds', [cloudbedsMinimalEntry]);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', [cloudbedsMinimalEntry]);
     expect(rooms).toHaveLength(1);
     expect(rooms[0].externalId).toBe('min-001');
     expect(rooms[0].confidence).toBeLessThan(0.3);
   });
 
   it('coerces string "false" to boolean false for isActive', () => {
-    const rooms = parseFromPMS('cloudbeds', [cloudbedsStringBoolEntry]);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', [cloudbedsStringBoolEntry]);
     expect(rooms[0].isActive).toBe(false);
   });
 });
@@ -180,18 +180,18 @@ describe('Cloudbeds adapter', () => {
 
 describe('Opera adapter', () => {
   it('parses a full OHIP envelope response', () => {
-    const rooms = parseFromPMS('opera', operaFullResponse);
+    const rooms = parseFromPMS('opera', 'roomTypes', operaFullResponse);
     expect(rooms).toHaveLength(3);
     rooms.forEach(assertCanonicalShape);
   });
 
   it('assigns correct pmsSource', () => {
-    const [room] = parseFromPMS('opera', operaFullResponse);
+    const [room] = parseFromPMS('opera', 'roomTypes', operaFullResponse);
     expect(room.pmsSource).toBe('opera');
   });
 
   it('maps fields correctly for the DD room', () => {
-    const [room] = parseFromPMS('opera', operaFullResponse);
+    const [room] = parseFromPMS('opera', 'roomTypes', operaFullResponse);
     expect(room.externalId).toBe('DD');
     expect(room.shortCode).toBe('DD');
     expect(room.name).toBe('Deluxe Double');
@@ -203,33 +203,33 @@ describe('Opera adapter', () => {
   });
 
   it('resolves OTA numeric bed type code "4" to king', () => {
-    const rooms = parseFromPMS('opera', operaFullResponse);
+    const rooms = parseFromPMS('opera', 'roomTypes', operaFullResponse);
     const ks = rooms.find((r) => r.externalId === 'KS')!;
     expect(ks.bedType).toBe('king');
     expect(ks.amenities).toEqual(['Sea View', 'Jacuzzi']);
   });
 
   it('maps activeFlag "N" to isActive=false', () => {
-    const rooms = parseFromPMS('opera', operaFullResponse);
+    const rooms = parseFromPMS('opera', 'roomTypes', operaFullResponse);
     const std = rooms.find((r) => r.externalId === 'STD')!;
     expect(std.isActive).toBe(false);
     expect(std.bedType).toBe('twin');
   });
 
   it('accepts flat array', () => {
-    const rooms = parseFromPMS('opera', operaArrayResponse);
+    const rooms = parseFromPMS('opera', 'roomTypes', operaArrayResponse);
     expect(rooms).toHaveLength(3);
   });
 
   it('handles minimal entry (only roomType code)', () => {
-    const rooms = parseFromPMS('opera', [operaMinimalEntry]);
+    const rooms = parseFromPMS('opera', 'roomTypes', [operaMinimalEntry]);
     expect(rooms).toHaveLength(1);
     expect(rooms[0].externalId).toBe('MIN');
     expect(rooms[0].name).toBe('MIN'); // falls back to shortCode
   });
 
   it('coerces string numbers for maxOccupancy and roomsInInventory', () => {
-    const rooms = parseFromPMS('opera', [operaStringNumberEntry]);
+    const rooms = parseFromPMS('opera', 'roomTypes', [operaStringNumberEntry]);
     expect(rooms[0].maxOccupancy).toBe(3);
     expect(rooms[0].roomCount).toBe(8);
     expect(rooms[0].bedType).toBe('queen');
@@ -242,18 +242,18 @@ describe('Opera adapter', () => {
 
 describe('HotelRunner adapter', () => {
   it('parses a full nested response', () => {
-    const rooms = parseFromPMS('hotelrunner', hotelrunnerFullResponse);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerFullResponse);
     expect(rooms).toHaveLength(2);
     rooms.forEach(assertCanonicalShape);
   });
 
   it('assigns correct pmsSource', () => {
-    const [room] = parseFromPMS('hotelrunner', hotelrunnerFullResponse);
+    const [room] = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerFullResponse);
     expect(room.pmsSource).toBe('hotelrunner');
   });
 
   it('maps fields correctly for the first entry', () => {
-    const [room] = parseFromPMS('hotelrunner', hotelrunnerFullResponse);
+    const [room] = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerFullResponse);
     expect(room.externalId).toBe('hr-101');
     expect(room.name).toBe('Standard Double');
     expect(room.shortCode).toBe('SD');
@@ -267,29 +267,29 @@ describe('HotelRunner adapter', () => {
   });
 
   it('coerces capacity string to number', () => {
-    const rooms = parseFromPMS('hotelrunner', hotelrunnerFullResponse);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerFullResponse);
     expect(rooms[1].maxOccupancy).toBe(4);
     expect(typeof rooms[1].roomCount).toBe('number');
   });
 
   it('coerces numeric 1 to boolean true for is_active', () => {
-    const rooms = parseFromPMS('hotelrunner', hotelrunnerFullResponse);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerFullResponse);
     expect(rooms[1].isActive).toBe(true);
   });
 
   it('accepts flat array', () => {
-    const rooms = parseFromPMS('hotelrunner', hotelrunnerArrayResponse);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', hotelrunnerArrayResponse);
     expect(rooms).toHaveLength(2);
   });
 
   it('handles minimal entry', () => {
-    const rooms = parseFromPMS('hotelrunner', [hotelrunnerMinimalEntry]);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', [hotelrunnerMinimalEntry]);
     expect(rooms).toHaveLength(1);
     expect(rooms[0].confidence).toBeLessThan(0.3);
   });
 
   it('coerces string "active" to boolean true for is_active', () => {
-    const rooms = parseFromPMS('hotelrunner', [hotelrunnerStringActiveEntry]);
+    const rooms = parseFromPMS('hotelrunner', 'roomTypes', [hotelrunnerStringActiveEntry]);
     expect(rooms[0].isActive).toBe(true);
   });
 });
@@ -300,18 +300,18 @@ describe('HotelRunner adapter', () => {
 
 describe('Electro adapter', () => {
   it('parses a full response', () => {
-    const rooms = parseFromPMS('electro', electroFullResponse);
+    const rooms = parseFromPMS('electro', 'roomTypes', electroFullResponse);
     expect(rooms).toHaveLength(2);
     rooms.forEach(assertCanonicalShape);
   });
 
   it('assigns correct pmsSource', () => {
-    const [room] = parseFromPMS('electro', electroFullResponse);
+    const [room] = parseFromPMS('electro', 'roomTypes', electroFullResponse);
     expect(room.pmsSource).toBe('electro');
   });
 
   it('maps fields correctly', () => {
-    const [room] = parseFromPMS('electro', electroFullResponse);
+    const [room] = parseFromPMS('electro', 'roomTypes', electroFullResponse);
     expect(room.externalId).toBe('elec-001');
     expect(room.name).toBe('Superior King');
     expect(room.shortCode).toBe('SK');
@@ -324,12 +324,12 @@ describe('Electro adapter', () => {
   });
 
   it('accepts flat array', () => {
-    const rooms = parseFromPMS('electro', electroArrayResponse);
+    const rooms = parseFromPMS('electro', 'roomTypes', electroArrayResponse);
     expect(rooms).toHaveLength(2);
   });
 
   it('handles minimal entry', () => {
-    const rooms = parseFromPMS('electro', [electroMinimalEntry]);
+    const rooms = parseFromPMS('electro', 'roomTypes', [electroMinimalEntry]);
     expect(rooms).toHaveLength(1);
     expect(rooms[0].confidence).toBeLessThan(0.3);
   });
@@ -401,12 +401,12 @@ describe('parseFromPMS — cross-cutting', () => {
   });
 
   it('rawData is preserved on each canonical record', () => {
-    const [room] = parseFromPMS('mews', mewsFullResponse);
+    const [room] = parseFromPMS('mews', 'roomTypes', mewsFullResponse);
     expect(room.rawData['Id']).toBe('5ee074b1-49a5-4ab3-9c72-3dfa17b15b5b');
   });
 
   it('every parsed room has a unique id', () => {
-    const rooms = parseFromPMS('cloudbeds', cloudbedsFullResponse);
+    const rooms = parseFromPMS('cloudbeds', 'roomTypes', cloudbedsFullResponse);
     const ids = rooms.map((r) => r.id);
     expect(new Set(ids).size).toBe(ids.length);
   });

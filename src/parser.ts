@@ -4,55 +4,165 @@
  * Usage:
  *   import { parseFromPMS, detectPMSFormat } from './parser';
  *
- *   const rooms = parseFromPMS('mews', rawApiResponse);
- *   // or, when source is unknown:
- *   const source = detectPMSFormat(rawApiResponse);
- *   if (source) { const rooms = parseFromPMS(source, rawApiResponse); }
+ *   const rooms        = parseFromPMS('mews', 'roomTypes', rawData);
+ *   const properties   = parseFromPMS('cloudbeds', 'properties', rawData);
+ *   const reservations = parseFromPMS('opera', 'reservations', rawData);
+ *   const rates        = parseFromPMS('hotelrunner', 'rates', rawData);
+ *   const availability = parseFromPMS('electro', 'availability', rawData);
+ *   const guests       = parseFromPMS('mews', 'guests', rawData);
+ *
+ *   // Auto-detect source:
+ *   const source = detectPMSFormat(rawData);
+ *   if (source) { ... }
  */
 
 import { CanonicalRoomType, PMSSource } from './types/canonical';
+import { CanonicalProperty } from './types/property.canonical';
+import { CanonicalReservation } from './types/reservation.canonical';
+import { CanonicalRate } from './types/rate.canonical';
+import { CanonicalAvailability } from './types/availability.canonical';
+import { CanonicalGuest } from './types/guest.canonical';
 import { logger } from './utils';
 
-import * as mewsAdapter from './adapters/mews.adapter';
-import * as cloudbedsAdapter from './adapters/cloudbeds.adapter';
-import * as operaAdapter from './adapters/opera.adapter';
-import * as hotelrunnerAdapter from './adapters/hotelrunner.adapter';
-import * as electroAdapter from './adapters/electro.adapter';
+// Room type adapters (existing)
+import * as mewsRooms from './adapters/mews.adapter';
+import * as cloudbedsRooms from './adapters/cloudbeds.adapter';
+import * as operaRooms from './adapters/opera.adapter';
+import * as hotelrunnerRooms from './adapters/hotelrunner.adapter';
+import * as electroRooms from './adapters/electro.adapter';
+
+// Property adapters
+import * as mewsProperty from './adapters/mews.property.adapter';
+import * as cloudbedsProperty from './adapters/cloudbeds.property.adapter';
+import * as operaProperty from './adapters/opera.property.adapter';
+import * as hotelrunnerProperty from './adapters/hotelrunner.property.adapter';
+import * as electroProperty from './adapters/electro.property.adapter';
+
+// Reservation adapters
+import * as mewsReservation from './adapters/mews.reservation.adapter';
+import * as cloudbedsReservation from './adapters/cloudbeds.reservation.adapter';
+import * as operaReservation from './adapters/opera.reservation.adapter';
+import * as hotelrunnerReservation from './adapters/hotelrunner.reservation.adapter';
+import * as electroReservation from './adapters/electro.reservation.adapter';
+
+// Rate adapters
+import * as mewsRate from './adapters/mews.rate.adapter';
+import * as cloudbedsRate from './adapters/cloudbeds.rate.adapter';
+import * as operaRate from './adapters/opera.rate.adapter';
+import * as hotelrunnerRate from './adapters/hotelrunner.rate.adapter';
+import * as electroRate from './adapters/electro.rate.adapter';
+
+// Availability adapters
+import * as mewsAvailability from './adapters/mews.availability.adapter';
+import * as cloudbedsAvailability from './adapters/cloudbeds.availability.adapter';
+import * as operaAvailability from './adapters/opera.availability.adapter';
+import * as hotelrunnerAvailability from './adapters/hotelrunner.availability.adapter';
+import * as electroAvailability from './adapters/electro.availability.adapter';
+
+// Guest adapters
+import * as mewsGuest from './adapters/mews.guest.adapter';
+import * as cloudbedsGuest from './adapters/cloudbeds.guest.adapter';
+import * as operaGuest from './adapters/opera.guest.adapter';
+import * as hotelrunnerGuest from './adapters/hotelrunner.guest.adapter';
+import * as electroGuest from './adapters/electro.guest.adapter';
+
+// ---------------------------------------------------------------------------
+// Entity type definitions
+// ---------------------------------------------------------------------------
+
+export type EntityType = 'roomTypes' | 'properties' | 'reservations' | 'rates' | 'availability' | 'guests';
+
+// Return type mapping — gives TypeScript callers full type inference
+type EntityReturnMap = {
+  roomTypes: CanonicalRoomType;
+  properties: CanonicalProperty;
+  reservations: CanonicalReservation;
+  rates: CanonicalRate;
+  availability: CanonicalAvailability;
+  guests: CanonicalGuest;
+};
 
 // ---------------------------------------------------------------------------
 // Adapter registry
 // ---------------------------------------------------------------------------
 
-const ADAPTERS: Record<PMSSource, { parseRoomTypes: (raw: unknown) => CanonicalRoomType[] }> = {
-  mews: mewsAdapter,
-  cloudbeds: cloudbedsAdapter,
-  opera: operaAdapter,
-  hotelrunner: hotelrunnerAdapter,
-  electro: electroAdapter,
+type AdapterFn<T> = (raw: unknown) => T[];
+
+interface PMSAdapters {
+  roomTypes: AdapterFn<CanonicalRoomType>;
+  properties: AdapterFn<CanonicalProperty>;
+  reservations: AdapterFn<CanonicalReservation>;
+  rates: AdapterFn<CanonicalRate>;
+  availability: AdapterFn<CanonicalAvailability>;
+  guests: AdapterFn<CanonicalGuest>;
+}
+
+const ADAPTERS: Record<PMSSource, PMSAdapters> = {
+  mews: {
+    roomTypes:     mewsRooms.parseRoomTypes,
+    properties:    mewsProperty.parseProperties,
+    reservations:  mewsReservation.parseReservations,
+    rates:         mewsRate.parseRates,
+    availability:  mewsAvailability.parseAvailability,
+    guests:        mewsGuest.parseGuests,
+  },
+  cloudbeds: {
+    roomTypes:     cloudbedsRooms.parseRoomTypes,
+    properties:    cloudbedsProperty.parseProperties,
+    reservations:  cloudbedsReservation.parseReservations,
+    rates:         cloudbedsRate.parseRates,
+    availability:  cloudbedsAvailability.parseAvailability,
+    guests:        cloudbedsGuest.parseGuests,
+  },
+  opera: {
+    roomTypes:     operaRooms.parseRoomTypes,
+    properties:    operaProperty.parseProperties,
+    reservations:  operaReservation.parseReservations,
+    rates:         operaRate.parseRates,
+    availability:  operaAvailability.parseAvailability,
+    guests:        operaGuest.parseGuests,
+  },
+  hotelrunner: {
+    roomTypes:     hotelrunnerRooms.parseRoomTypes,
+    properties:    hotelrunnerProperty.parseProperties,
+    reservations:  hotelrunnerReservation.parseReservations,
+    rates:         hotelrunnerRate.parseRates,
+    availability:  hotelrunnerAvailability.parseAvailability,
+    guests:        hotelrunnerGuest.parseGuests,
+  },
+  electro: {
+    roomTypes:     electroRooms.parseRoomTypes,
+    properties:    electroProperty.parseProperties,
+    reservations:  electroReservation.parseReservations,
+    rates:         electroRate.parseRates,
+    availability:  electroAvailability.parseAvailability,
+    guests:        electroGuest.parseGuests,
+  },
 };
 
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
 
-/**
- * Routes `rawData` to the appropriate PMS adapter and returns normalised room types.
- *
- * @param source  Which PMS the data comes from.
- * @param rawData The raw API response payload (will be validated internally).
- * @returns       Array of CanonicalRoomType objects. Empty array on failure.
- */
-export function parseFromPMS(source: PMSSource, rawData: unknown): CanonicalRoomType[] {
-  const adapter = ADAPTERS[source];
-  if (!adapter) {
+export function parseFromPMS<E extends EntityType>(
+  source: PMSSource,
+  entity: E,
+  rawData: unknown,
+): EntityReturnMap[E][] {
+  const pmsAdapters = ADAPTERS[source];
+  if (!pmsAdapters) {
     logger.error(`parseFromPMS: no adapter registered for source "${source}"`);
     return [];
   }
-
+  const fn = pmsAdapters[entity];
+  if (!fn) {
+    logger.error(`parseFromPMS: no "${entity}" adapter for source "${source}"`);
+    return [];
+  }
   try {
-    return adapter.parseRoomTypes(rawData);
+    return (fn as AdapterFn<EntityReturnMap[E]>)(rawData);
   } catch (err) {
-    logger.error(`parseFromPMS: unhandled error in ${source} adapter`, err);
+    logger.error(`parseFromPMS: unhandled error in ${source}/${entity} adapter`, err);
     return [];
   }
 }
@@ -61,20 +171,12 @@ export function parseFromPMS(source: PMSSource, rawData: unknown): CanonicalRoom
 // Auto-detection heuristics
 // ---------------------------------------------------------------------------
 
-/**
- * A detection rule checks whether a raw payload "looks like" a given PMS.
- * Higher `weight` = checked first. The first passing rule wins.
- */
 type DetectionRule = {
   source: PMSSource;
-  /** Higher = higher priority */
   weight: number;
   detect: (data: unknown) => boolean;
 };
 
-/**
- * Safely retrieves a nested value from an unknown object without throwing.
- */
 function safeGet(obj: unknown, ...keys: string[]): unknown {
   let cur: unknown = obj;
   for (const key of keys) {
@@ -94,101 +196,100 @@ function firstArrayItem(data: unknown): unknown {
 }
 
 const DETECTION_RULES: DetectionRule[] = [
-  // ── Mews ─────────────────────────────────────────────────────────────────
   {
     source: 'mews',
     weight: 10,
     detect(data) {
-      // Top-level envelope
-      if (hasKey(data, 'spaceTypes')) return true;
-      // Array of space types
+      if (hasKey(data, 'spaceTypes') || hasKey(data, 'hotels') || hasKey(data, 'customers') || hasKey(data, 'reservations') && hasKey(safeGet(data, 'reservations', '0'), 'StartUtc')) return true;
       const item = firstArrayItem(data);
       if (item && (hasKey(item, 'SpaceCount') || hasKey(item, 'ExtraCapacity'))) return true;
       if (item && hasKey(item, 'Id') && hasKey(item, 'Names') && hasKey(item, 'Capacity')) return true;
+      if (item && hasKey(item, 'StartUtc') && hasKey(item, 'EndUtc') && hasKey(item, 'AdultCount')) return true;
+      if (item && hasKey(item, 'NationalityCode') && hasKey(item, 'BirthDateUtc')) return true;
       return false;
     },
   },
-
-  // ── Cloudbeds ─────────────────────────────────────────────────────────────
   {
     source: 'cloudbeds',
     weight: 10,
     detect(data) {
-      if (hasKey(safeGet(data, 'data'), 'roomTypeID') || hasKey(data, 'roomTypeID')) return true;
-      // Array
-      const item = firstArrayItem(data) ??
-        firstArrayItem(safeGet(data, 'data'));
-      if (item && hasKey(item, 'roomTypeID')) return true;
+      if (hasKey(data, 'roomTypeID') || hasKey(data, 'reservationID') || hasKey(data, 'guestID')) return true;
+      const item = firstArrayItem(data) ?? firstArrayItem(safeGet(data, 'data'));
+      if (!item) {
+        if (hasKey(safeGet(data, 'data'), 'propertyID') || hasKey(safeGet(data, 'data'), 'propertyName')) return true;
+      }
+      if (item && (hasKey(item, 'roomTypeID') || hasKey(item, 'reservationID') || hasKey(item, 'guestID'))) return true;
       if (item && hasKey(item, 'roomTypeName') && hasKey(item, 'maxGuests')) return true;
       return false;
     },
   },
-
-  // ── Opera Cloud ───────────────────────────────────────────────────────────
   {
     source: 'opera',
     weight: 10,
     detect(data) {
-      // OHIP nested envelope
       if (safeGet(data, 'roomTypes', 'roomTypeInfo')) return true;
-      const item = firstArrayItem(data) ??
-        firstArrayItem(safeGet(data, 'roomTypes', 'roomTypeInfo'));
+      if (safeGet(data, 'reservations', 'reservation')) return true;
+      if (safeGet(data, 'ratePlans', 'ratePlan')) return true;
+      if (safeGet(data, 'profiles', 'profile')) return true;
+      if (hasKey(data, 'hotelInfo')) return true;
+      if (hasKey(data, 'availability')) return true;
+      const item = firstArrayItem(data) ?? firstArrayItem(safeGet(data, 'availability'));
       if (item && hasKey(item, 'activeFlag') && hasKey(item, 'roomsInInventory')) return true;
       if (item && hasKey(item, 'roomType') && hasKey(item, 'roomClass')) return true;
+      if (item && hasKey(item, 'housekeepingStatus')) return true;
       return false;
     },
   },
-
-  // ── HotelRunner ──────────────────────────────────────────────────────────
   {
     source: 'hotelrunner',
     weight: 10,
     detect(data) {
       if (safeGet(data, 'data', 'room_types')) return true;
-      const item = firstArrayItem(data) ??
-        firstArrayItem(safeGet(data, 'data', 'room_types'));
+      if (safeGet(data, 'data', 'reservations')) return true;
+      if (safeGet(data, 'data', 'rate_plans')) return true;
+      if (safeGet(data, 'data', 'guests')) return true;
+      if (safeGet(data, 'data', 'property') && hasKey(safeGet(data, 'data', 'property'), 'property_id')) return true;
+      if (safeGet(data, 'data', 'availability')) return true;
+      const item = firstArrayItem(data) ?? firstArrayItem(safeGet(data, 'data', 'room_types'));
       if (item && hasKey(item, 'room_type_id')) return true;
-      if (item && hasKey(item, 'room_count') && hasKey(item, 'capacity') && !hasKey(item, 'roomType')) return true;
+      if (item && hasKey(item, 'reservation_id')) return true;
       return false;
     },
   },
-
-  // ── Electro ──────────────────────────────────────────────────────────────
   {
     source: 'electro',
-    weight: 5, // lower priority — field names are more generic
+    weight: 5,
     detect(data) {
       if (hasKey(data, 'roomTypes') && !safeGet(data, 'roomTypes', 'roomTypeInfo')) return true;
+      if (hasKey(data, 'reservations') && !safeGet(data, 'reservations', 'reservation')) return true;
+      if (hasKey(data, 'rates') || hasKey(data, 'guests') || hasKey(data, 'properties')) return true;
       const item = firstArrayItem(safeGet(data, 'roomTypes')) ?? firstArrayItem(data);
       if (item && hasKey(item, 'totalRooms') && hasKey(item, 'code')) return true;
+      if (item && hasKey(item, 'checkIn') && hasKey(item, 'checkOut') && hasKey(item, 'guestId')) return true;
       return false;
     },
   },
 ];
 
-// Sort descending by weight so highest-priority rules are checked first
 DETECTION_RULES.sort((a, b) => b.weight - a.weight);
 
-/**
- * Attempts to auto-detect which PMS a raw payload came from.
- *
- * @param rawData  The raw API response (envelope or array).
- * @returns        The detected PMSSource, or `null` if undetermined.
- */
 export function detectPMSFormat(rawData: unknown): PMSSource | null {
   for (const rule of DETECTION_RULES) {
     try {
       if (rule.detect(rawData)) return rule.source;
-    } catch {
-      // defensive: detection rules must not throw
-    }
+    } catch { /* defensive */ }
   }
   return null;
 }
 
 // ---------------------------------------------------------------------------
-// Re-exports for convenience
+// Re-exports
 // ---------------------------------------------------------------------------
 
 export type { CanonicalRoomType, PMSSource };
+export type { CanonicalProperty };
+export type { CanonicalReservation, ReservationStatus } from './types/reservation.canonical';
+export type { CanonicalRate, MealPlan } from './types/rate.canonical';
+export type { CanonicalAvailability } from './types/availability.canonical';
+export type { CanonicalGuest, Gender, IdType } from './types/guest.canonical';
 export { CanonicalRoomTypeSchema, PMSSourceSchema, BedTypeSchema } from './types/canonical';
