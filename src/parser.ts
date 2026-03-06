@@ -22,6 +22,8 @@ import { CanonicalReservation } from './types/reservation.canonical';
 import { CanonicalRate } from './types/rate.canonical';
 import { CanonicalAvailability } from './types/availability.canonical';
 import { CanonicalGuest } from './types/guest.canonical';
+import { CanonicalFolio } from './types/folio.canonical';
+import { CanonicalHousekeeping } from './types/housekeeping.canonical';
 import { logger } from './utils';
 
 // Room type adapters (existing)
@@ -66,11 +68,25 @@ import * as operaGuest from './adapters/opera.guest.adapter';
 import * as hotelrunnerGuest from './adapters/hotelrunner.guest.adapter';
 import * as electroGuest from './adapters/electro.guest.adapter';
 
+// Folio adapters
+import * as mewsFolio from './adapters/mews.folio.adapter';
+import * as cloudbedsFolio from './adapters/cloudbeds.folio.adapter';
+import * as operaFolio from './adapters/opera.folio.adapter';
+import * as hotelrunnerFolio from './adapters/hotelrunner.folio.adapter';
+import * as electroFolio from './adapters/electro.folio.adapter';
+
+// Housekeeping adapters
+import * as mewsHousekeeping from './adapters/mews.housekeeping.adapter';
+import * as cloudbedsHousekeeping from './adapters/cloudbeds.housekeeping.adapter';
+import * as operaHousekeeping from './adapters/opera.housekeeping.adapter';
+import * as hotelrunnerHousekeeping from './adapters/hotelrunner.housekeeping.adapter';
+import * as electroHousekeeping from './adapters/electro.housekeeping.adapter';
+
 // ---------------------------------------------------------------------------
 // Entity type definitions
 // ---------------------------------------------------------------------------
 
-export type EntityType = 'roomTypes' | 'properties' | 'reservations' | 'rates' | 'availability' | 'guests';
+export type EntityType = 'roomTypes' | 'properties' | 'reservations' | 'rates' | 'availability' | 'guests' | 'folios' | 'housekeeping';
 
 // Return type mapping — gives TypeScript callers full type inference
 type EntityReturnMap = {
@@ -80,6 +96,8 @@ type EntityReturnMap = {
   rates: CanonicalRate;
   availability: CanonicalAvailability;
   guests: CanonicalGuest;
+  folios: CanonicalFolio;
+  housekeeping: CanonicalHousekeeping;
 };
 
 // ---------------------------------------------------------------------------
@@ -95,6 +113,8 @@ interface PMSAdapters {
   rates: AdapterFn<CanonicalRate>;
   availability: AdapterFn<CanonicalAvailability>;
   guests: AdapterFn<CanonicalGuest>;
+  folios: AdapterFn<CanonicalFolio>;
+  housekeeping: AdapterFn<CanonicalHousekeeping>;
 }
 
 const ADAPTERS: Record<PMSSource, PMSAdapters> = {
@@ -105,6 +125,8 @@ const ADAPTERS: Record<PMSSource, PMSAdapters> = {
     rates:         mewsRate.parseRates,
     availability:  mewsAvailability.parseAvailability,
     guests:        mewsGuest.parseGuests,
+    folios:        mewsFolio.parseFolios,
+    housekeeping:  mewsHousekeeping.parseHousekeeping,
   },
   cloudbeds: {
     roomTypes:     cloudbedsRooms.parseRoomTypes,
@@ -113,6 +135,8 @@ const ADAPTERS: Record<PMSSource, PMSAdapters> = {
     rates:         cloudbedsRate.parseRates,
     availability:  cloudbedsAvailability.parseAvailability,
     guests:        cloudbedsGuest.parseGuests,
+    folios:        cloudbedsFolio.parseFolios,
+    housekeeping:  cloudbedsHousekeeping.parseHousekeeping,
   },
   opera: {
     roomTypes:     operaRooms.parseRoomTypes,
@@ -121,6 +145,8 @@ const ADAPTERS: Record<PMSSource, PMSAdapters> = {
     rates:         operaRate.parseRates,
     availability:  operaAvailability.parseAvailability,
     guests:        operaGuest.parseGuests,
+    folios:        operaFolio.parseFolios,
+    housekeeping:  operaHousekeeping.parseHousekeeping,
   },
   hotelrunner: {
     roomTypes:     hotelrunnerRooms.parseRoomTypes,
@@ -129,6 +155,8 @@ const ADAPTERS: Record<PMSSource, PMSAdapters> = {
     rates:         hotelrunnerRate.parseRates,
     availability:  hotelrunnerAvailability.parseAvailability,
     guests:        hotelrunnerGuest.parseGuests,
+    folios:        hotelrunnerFolio.parseFolios,
+    housekeeping:  hotelrunnerHousekeeping.parseHousekeeping,
   },
   electro: {
     roomTypes:     electroRooms.parseRoomTypes,
@@ -137,6 +165,8 @@ const ADAPTERS: Record<PMSSource, PMSAdapters> = {
     rates:         electroRate.parseRates,
     availability:  electroAvailability.parseAvailability,
     guests:        electroGuest.parseGuests,
+    folios:        electroFolio.parseFolios,
+    housekeeping:  electroHousekeeping.parseHousekeeping,
   },
 };
 
@@ -292,4 +322,6 @@ export type { CanonicalReservation, ReservationStatus } from './types/reservatio
 export type { CanonicalRate, MealPlan } from './types/rate.canonical';
 export type { CanonicalAvailability } from './types/availability.canonical';
 export type { CanonicalGuest, Gender, IdType } from './types/guest.canonical';
+export type { CanonicalFolio, FolioItem, FolioItemType, FolioStatus } from './types/folio.canonical';
+export type { CanonicalHousekeeping, HousekeepingStatus, OccupancyStatus } from './types/housekeeping.canonical';
 export { CanonicalRoomTypeSchema, PMSSourceSchema, BedTypeSchema } from './types/canonical';

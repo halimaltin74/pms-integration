@@ -28,6 +28,8 @@ import type { CanonicalReservation } from './types/reservation.canonical';
 import type { CanonicalRate } from './types/rate.canonical';
 import type { CanonicalAvailability } from './types/availability.canonical';
 import type { CanonicalGuest } from './types/guest.canonical';
+import type { CanonicalFolio } from './types/folio.canonical';
+import type { CanonicalHousekeeping } from './types/housekeeping.canonical';
 
 // ---------------------------------------------------------------------------
 // Return type mapping
@@ -40,6 +42,8 @@ type EntityReturnMap = {
   rates: CanonicalRate;
   availability: CanonicalAvailability;
   guests: CanonicalGuest;
+  folios: CanonicalFolio;
+  housekeeping: CanonicalHousekeeping;
 };
 
 // ---------------------------------------------------------------------------
@@ -70,6 +74,8 @@ async function fetchRaw(client: AnyClient, entity: EntityType, options: FetchOpt
     case 'rates':        return client.fetchRates(options);
     case 'availability': return client.fetchAvailability(options);
     case 'guests':       return client.fetchGuests(options);
+    case 'folios':       return client.fetchFolios(options);
+    case 'housekeeping': return client.fetchHousekeeping(options);
   }
 }
 

@@ -6,6 +6,7 @@
 
 import axios, { AxiosInstance } from 'axios';
 import { CloudbedsCredentials, FetchOptions } from '../credentials/types';
+import { withRetry } from '../utils/retry';
 import { PMSApiError } from '../errors';
 import { tokenManager } from '../auth/token.manager';
 import { CredentialStore } from '../credentials/store';
@@ -88,14 +89,12 @@ export class CloudbedsClient {
   }
 
   private async get<T>(path: string, params: Record<string, unknown> = {}): Promise<T> {
-    try {
+    return withRetry(async () => { try {
       const { data } = await this.http.get<T>(path, {
         params: { propertyID: this.creds.propertyId, ...params },
       });
       return data;
-    } catch (err) {
-      throw this.wrapError(err);
-    }
+    } catch (err) { throw this.wrapError(err); }});
   }
 
   private wrapError(err: unknown): PMSApiError {
@@ -142,5 +141,16 @@ export class CloudbedsClient {
       pageNumber: 1,
       pageSize: options.limit ?? 100,
     });
+  }
+
+  async fetchFolios(options: FetchOptions = {}): Promise<unknown> {
+    return this.get('/getFolios', {
+      pageNumber: 1,
+      pageSize: options.limit ?? 100,
+    });
+  }
+
+  async fetchHousekeeping(_options: FetchOptions = {}): Promise<unknown> {
+    return this.get('/getHousekeepingStatus');
   }
 }

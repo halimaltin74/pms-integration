@@ -5,9 +5,9 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
-import { MewsCredentials } from '../credentials/types';
+import { MewsCredentials, FetchOptions } from '../credentials/types';
 import { PMSApiError } from '../errors';
-import { FetchOptions } from '../credentials/types';
+import { withRetry } from '../utils/retry';
 
 const BASE_URLS = {
   production: 'https://api.mews.com',
@@ -28,12 +28,14 @@ export class MewsClient {
   }
 
   private async post<T>(path: string, body: Record<string, unknown>): Promise<T> {
-    try {
-      const { data } = await this.http.post<T>(path, { ...this.auth, ...body });
-      return data;
-    } catch (err) {
-      throw this.wrapError(err);
-    }
+    return withRetry(async () => {
+      try {
+        const { data } = await this.http.post<T>(path, { ...this.auth, ...body });
+        return data;
+      } catch (err) {
+        throw this.wrapError(err);
+      }
+    });
   }
 
   private wrapError(err: unknown): PMSApiError {
@@ -82,6 +84,16 @@ export class MewsClient {
     const body: Record<string, unknown> = {};
     if (options.limit) body['limitation'] = { count: options.limit, cursor: options.cursor };
     return this.post('/api/channelManager/v1/getCustomers', body);
+  }
+
+  async fetchFolios(options: FetchOptions = {}): Promise<unknown> {
+    const body: Record<string, unknown> = {};
+    if (options.limit) body['limitation'] = { count: options.limit, cursor: options.cursor };
+    return this.post('/api/channelManager/v1/getFolios', body);
+  }
+
+  async fetchHousekeeping(_options: FetchOptions = {}): Promise<unknown> {
+    return this.post('/api/channelManager/v1/getHousekeeping', {});
   }
 
   /** Room types are part of the getProperties response */

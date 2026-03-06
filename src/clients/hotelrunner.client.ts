@@ -4,6 +4,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { withRetry } from '../utils/retry';
 import { HotelRunnerCredentials, FetchOptions } from '../credentials/types';
 import { PMSApiError } from '../errors';
 
@@ -27,12 +28,12 @@ export class HotelRunnerClient {
   }
 
   private async get<T>(path: string, params: Record<string, unknown> = {}): Promise<T> {
-    try {
-      const { data } = await this.http.get<T>(path, { params });
-      return data;
-    } catch (err) {
-      throw this.wrapError(err);
-    }
+    return withRetry(async () => {
+      try {
+        const { data } = await this.http.get<T>(path, { params });
+        return data;
+      } catch (err) { throw this.wrapError(err); }
+    });
   }
 
   private wrapError(err: unknown): PMSApiError {
@@ -80,5 +81,15 @@ export class HotelRunnerClient {
     return this.get(`/api/v1/properties/${this.pid}/guests`, {
       ...(options.limit && { per_page: options.limit }),
     });
+  }
+
+  async fetchFolios(options: FetchOptions = {}): Promise<unknown> {
+    return this.get(`/api/v1/properties/${this.pid}/folios`, {
+      ...(options.limit && { per_page: options.limit }),
+    });
+  }
+
+  async fetchHousekeeping(_options: FetchOptions = {}): Promise<unknown> {
+    return this.get(`/api/v1/properties/${this.pid}/housekeeping`);
   }
 }

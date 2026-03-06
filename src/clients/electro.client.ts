@@ -5,6 +5,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { withRetry } from '../utils/retry';
 import { ElectroCredentials, FetchOptions } from '../credentials/types';
 import { PMSApiError } from '../errors';
 
@@ -79,5 +80,15 @@ export class ElectroClient {
     return this.get('/api/v1/guests', {
       ...(options.limit && { limit: options.limit }),
     });
+  }
+
+  async fetchFolios(options: FetchOptions = {}): Promise<unknown> {
+    return this.get('/api/v1/folios', {
+      ...(options.limit && { limit: options.limit }),
+    });
+  }
+
+  async fetchHousekeeping(_options: FetchOptions = {}): Promise<unknown> {
+    return this.get('/api/v1/housekeeping');
   }
 }

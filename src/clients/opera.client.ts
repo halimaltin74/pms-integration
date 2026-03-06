@@ -5,6 +5,7 @@
  */
 
 import axios, { AxiosInstance } from 'axios';
+import { withRetry } from '../utils/retry';
 import { OperaCredentials, FetchOptions } from '../credentials/types';
 import { PMSApiError } from '../errors';
 import { tokenManager } from '../auth/token.manager';
@@ -83,12 +84,12 @@ export class OperaClient {
   }
 
   private async get<T>(path: string, params: Record<string, unknown> = {}): Promise<T> {
-    try {
-      const { data } = await this.http.get<T>(path, { params });
-      return data;
-    } catch (err) {
-      throw this.wrapError(err);
-    }
+    return withRetry(async () => {
+      try {
+        const { data } = await this.http.get<T>(path, { params });
+        return data;
+      } catch (err) { throw this.wrapError(err); }
+    });
   }
 
   private wrapError(err: unknown): PMSApiError {
@@ -137,5 +138,15 @@ export class OperaClient {
       profileType: 'GUEST',
       limit: options.limit ?? 100,
     });
+  }
+
+  async fetchFolios(options: FetchOptions = {}): Promise<unknown> {
+    return this.get(`/fof/v0/hotels/${this.hotelId}/folios`, {
+      limit: options.limit ?? 100,
+    });
+  }
+
+  async fetchHousekeeping(_options: FetchOptions = {}): Promise<unknown> {
+    return this.get(`/hsk/v0/hotels/${this.hotelId}/housekeepingRooms`);
   }
 }
